@@ -1,0 +1,3 @@
+/home/sophie/project/rls2_release/build/CMakeFiles/rls.dir
+/home/sophie/project/rls2_release/build/CMakeFiles/edit_cache.dir
+/home/sophie/project/rls2_release/build/CMakeFiles/rebuild_cache.dir

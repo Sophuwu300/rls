@@ -1,0 +1,38 @@
+"/mnt/bf21567c-5bdf-44fb-a98c-a0015f59e257/1. tmp/CLion-2023.1.3/clion-2023.1.3/bin/cmake/linux/x64/bin/cmake" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=/mnt/bf21567c-5bdf-44fb-a98c-a0015f59e257/1. tmp/CLion-2023.1.3/clion-2023.1.3/bin/ninja/linux/x64/ninja" -G Ninja -S /mnt/sophuwu/project/rls2_release -B /mnt/sophuwu/project/rls2_release/cmake-build-debug
+-- The C compiler identification is unknown
+-- The CXX compiler identification is unknown
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - failed
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc - broken
+CMake Error at /mnt/bf21567c-5bdf-44fb-a98c-a0015f59e257/1. tmp/CLion-2023.1.3/clion-2023.1.3/bin/cmake/linux/x64/share/cmake-3.25/Modules/CMakeTestCCompiler.cmake:70 (message):
+  The C compiler
+
+    "/usr/bin/cc"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: /mnt/sophuwu/project/rls2_release/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bZluiL
+    
+    Run Build Command(s):/mnt/bf21567c-5bdf-44fb-a98c-a0015f59e257/1. tmp/CLion-2023.1.3/clion-2023.1.3/bin/ninja/linux/x64/ninja cmTC_0ddc2 && [1/2] Building C object CMakeFiles/cmTC_0ddc2.dir/testCCompiler.c.o
+    FAILED: CMakeFiles/cmTC_0ddc2.dir/testCCompiler.c.o 
+    /usr/bin/cc    -o CMakeFiles/cmTC_0ddc2.dir/testCCompiler.c.o -c /mnt/sophuwu/project/rls2_release/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bZluiL/testCCompiler.c
+    /tmp/cceTGEfs.s: Assembler messages:
+    /tmp/cceTGEfs.s: Fatal error: can't write 23 bytes to section .text of CMakeFiles/cmTC_0ddc2.dir/testCCompiler.c.o: 'Illegal seek'
+    /tmp/cceTGEfs.s: Fatal error: CMakeFiles/cmTC_0ddc2.dir/testCCompiler.c.o: Illegal seek
+    ninja: build stopped: subcommand failed.
+    
+    
+
+  
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  CMakeLists.txt:2 (project)
+
+
+-- Configuring incomplete, errors occurred!
+See also "/mnt/sophuwu/project/rls2_release/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+See also "/mnt/sophuwu/project/rls2_release/cmake-build-debug/CMakeFiles/CMakeError.log".
