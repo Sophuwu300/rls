@@ -1,163 +1,87 @@
-#include <iostream>
+#include <stdio.h>
 #include <string>
-#include <cstdint>
-#include <memory>
-#include <stdexcept>
-#include <stdarg.h>
-#include <iostream>
-#include <tinydir.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <filesystem>
-#include <iostream>
-#include <string>
-#include <cstdint>
-#include <memory>
-#include <stdexcept>
-#include <stdarg.h>
-#include <vector>
-#include <argh.h>
-using std::filesystem::current_path;
-long filesizefunc(std::string filename)
-{
-    struct stat stat_buf;
-    int rc = stat(filename.c_str(), &stat_buf);
-    return rc == 0 ? stat_buf.st_size : -1;
+
+void panic(std::string s) {
+    fprintf(stderr, "Fatal error: %s\n", s.c_str());
+    exit(1);
 }
 
+struct rgb {
+    double r, g, b;
 
-void rgbpf(uint8_t r, uint8_t g, uint8_t b, const std::string fmt, ...) {
-    int size = ((int)fmt.size()) * 2 + 50;
-    std::string str;
-    va_list ap;
-    while (1) {
-        str.resize(size);
-        va_start(ap, fmt);
-        int n = vsnprintf((char *)str.data(), size, fmt.c_str(), ap);
-        va_end(ap);
-        if (n > -1 && n < size) {
-            str.resize(n);
-            std::cout << "\033[38;2;" << +r << ";" << +g << ";" << +b << "m" << str;
-            return;
-        }
-        if (n > -1) size = n + 1;
-        else size *= 2;
-    }
-}
-
-
-int main(int argc, char *argv[]) {
-    argh::parser cmdl(argv);
-    tinydir_dir dir;
-    int i;
-    double size;
-    long sizelong;
-    char unit = 'B';
-    char str [6];
-    int n;
-
-    std::ostream& out = std::cout;
-    char workdir[256];
-    getcwd(workdir, 256);
-    if (argc > 1) {
-        char randomdir[256];
-        strcpy(randomdir, argv[1]);
-        if (randomdir[0] != '/') {
-            strcat(workdir, "/");
-            strcat(workdir, randomdir);
-        } else {
-            strcpy(workdir, randomdir);
-        }
+    std::string str(char sep = ';') {
+        return std::to_string((int)r) + sep + std::to_string((int)g) + sep + std::to_string((int)b);
     }
 
-    tinydir_open_sorted(&dir, workdir);
-    rgbpf(255,255,0,"%s%s", dir.path, "\n\n");
+    void set(double rr, double gg, double bb) {r = rr;g = gg;b = bb;}
+    void set(rgb c) {r = c.r;g = c.g;b = c.b;}
 
-    double step = 0;
-    if (dir.n_files > 0) {
-        step = 5*(double)255 / ((double)dir.n_files-1);
-    } else {
-        printf("No files in directory\n\n");
+    void clamp() {
+        if (r > 255) r = 255; else if (r < 0) r = 0;
+        if (g > 255) g = 255; else if (g < 0) g = 0;
+        if (b > 255) b = 255; else if (b < 0) b = 0;
+    }
+
+    void print(std::string s) {printf("\033[38;2;%sm%s\033[0m", str().c_str(), s.c_str());}
+    void printAt(std::string s, int x, int y) {printf("\033[%d;%dH\033[38;2;%sm%s\033[0m", y, x, str().c_str(), s.c_str());}
+    void setPx(int x, int y) {printf("\033[%d;%dH\033[48;2;%sm \033[0m", y, x, str().c_str());}
+
+    double operator[](int i) {
+        switch (i) {
+            case 0: return r;
+            case 1: return g;
+            case 2: return b;
+        }
+        panic("rgb index out of range");
         return 0;
     }
-
-
-    double r = 255;
-    double g = 0;
-    double b = 0;
-    bool step1 = false;
-    bool step2 = false;
-    bool step3 = false;
-    bool step4 = false;
-
-    for (i = 2; i < dir.n_files; i++)
-    {
-        if (!step1) g += step;
-        else if (!step2) r -= step;
-        else if (!step3) b += step;
-        else if (!step4) g -= step;
-        else r += step;
-        if (g >= 255) {
-            g = 255;
-            step1 = true;
+    void indexAdd(int i, double v) {
+        switch (i) {
+            case 0: r += v; break;
+            case 1: g += v; break;
+            case 2: b += v; break;
         }
-        if (r <= 0) {
-            r = 0;
-            step2 = true;
-        }
-        if (b >= 255) {
-            b = 255;
-            step3 = true;
-        }
-        if (g <= 0) {
-            g = 0;
-            step4 = true;
-        }
-        if (r >= 255) {
-            r = 255;
-        }
-        tinydir_file file;
-        tinydir_readfile_n(&dir, &file, i);
-
-        if (file.is_dir)
-        {
-            rgbpf(r,g,b, "%s","  Folder     ");
-        } else {
-            sizelong = filesizefunc(file.path);
-            size = (double)sizelong;
-            if (size > 1000000000000) {
-                size = size / 1000000000000;
-                unit = 'T';
-            } else if (size > 1000000000) {
-                size = size / 1000000000;
-                unit = 'G';
-            } else if (size > 1000000) {
-                size = size / 1000000;
-                unit = 'M';
-            } else if (size > 1000) {
-                size = size / 1000;
-                unit = 'K';
-            } else {
-                unit = ' ';
-            }
-            if (size >= 1) {
-                n = sprintf(str, "%.2f", size);
-                n=5-n;
-                char space [n];
-                int j = 0;
-                while (j < n+1) {
-                    space[j] = ' ';
-                    j++;
-                }
-                space[j] = '\0';
-                rgbpf(r,g,b,"  %s%s %c   ", space, str, unit);
-            }
-        }
-        rgbpf(r,g,b,"%s%s", file.name, "\n");
     }
-    printf("\n\n");
-    tinydir_close(&dir);
+};
 
-    return 0;
+struct rainbow {
+    rgb c;
+    double s = 0; // step
 
+    void init(int len) {
+        if (len == 0) panic("Divison by zero.");
+        c.set(255, 0, 0);
+        s = 5.0*255.0 / (double)len;
+    }
+
+    void next() {
+        if (s == 0) panic("Empty infinity loop.");
+        for (int i = 0; i < 3; i++) {
+            if ((c[(i+1)%3]==0||c[(i+1)%3]==255)&&(c[(i+2)%3]==0||c[(i+2)%3]==255)) {
+                if (c[(i+1)%3]==0&&c[(i+2)%3]==255) c.indexAdd(i, s);
+                else if (c[(i+1)%3]==255&&c[(i+2)%3]==0) c.indexAdd(i, -s);
+                c.clamp();
+            }
+        }
+    }
+    void print(std::string s) {c.print(s);}
+    void print2d(std::string s, int len = 30) {
+        rainbow r;
+        r.init(len);
+        r.c.set(c);
+        for (int i = 0; i < s.length(); i++) {
+            r.c.print(s.substr(i, 1));
+            r.next();
+        }
+    }
+};
+
+int main() {
+    rainbow r;
+    r.init(15);
+    std::string s = "Hello World!\n";
+    for (int i = 0; i < 30; i++) {
+        r.print2d(s);
+        r.next();
+    }
 }
