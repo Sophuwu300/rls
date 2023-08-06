@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <string>
+#include <cstring>
+#include <filesystem>
+#include <sys/stat.h>
+#include <vector>
 
 void panic(std::string s) {
     fprintf(stderr, "Fatal error: %s\n", s.c_str());
@@ -61,7 +65,6 @@ struct rainbow {
             if ((c[i+1]==0||c[i+1]==255)&&(c[i+2]==0||c[i+2]==255)) {
                 if (c[i+1]==0&&c[i+2]==255) c.indexAdd(i, s);
                 else if (c[i+1]==255&&c[i+2]==0) c.indexAdd(i, -s);
-                c.clamp();
             }
         }
     }
@@ -77,35 +80,125 @@ struct rainbow {
     }
 };
 
-/* example of how to use!
-int main() {
+std::string getpath(int argc, char* argv[]) {
+    std::string path = std::filesystem::current_path();
+    if (argc > 1) {
+        if (argv[1][0] == '/') path = std::string(argv[1]);
+        else path += "/" + std::string(argv[1]);
+    }
+    return path;
+}
 
-    // declare a variable of type rainbow
-    rainbow r;
+struct diritem {
+    std::string name;
+    std::string size;
+    std::string str() {return size + name + "\n";}
+};
 
-    // initialize it with the length you want. it is inversely proportional to the number of colors
-    // init also sets the starting color to red. change it with r.c.set(r, g, b) (0 to 255)
-    r.init(30);
+std::string convsize(int n) {
+    float f = n;
+    char c[] = " KMGT";
+    int i = 0;
+    for (;f > 999; i++) f /= 1000;
+    if (i > 4) return " >1.00 P  ";
+    n = 100*f;
+    std::string s = "";
+    for (; n > 0; n /= 10) s = std::to_string(n%10) + s;
+    for (; s.length() < 5; s = " " + s);
+    return s.substr(0, 3) + "." + s.substr(3, 2) + " " + c[i] + "  ";
+}
 
-    // some string, can be anything. has to be of type std::string, cannot be typed directly into the function
-    std::string s = "Hello World!";
+int getdir(std::vector<diritem>& files, std::vector<diritem>& folders, std::string path) {
+    int len = 0, i= 0;
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        diritem item;
+        item.name = entry.path().filename().string();
+        len += item.name.length();
+        i++;
+        if (std::filesystem::is_directory(entry.path())) {
+            item.name += "/";
+            item.size = "Folder    ";
+            folders.push_back(item);
+            continue;
+        } else if (std::filesystem::exists(entry.path()))
+            item.size = convsize(std::filesystem::file_size(entry.path()));
+        else item.size = convsize(0);
+        files.push_back(item);
+    }
+    len /= i;
+    return len*7.5;
+}
 
-    // loops go well with rainbows :)
-    for (int i = 0; i < 30; i++) {
+int charcmp(char a, char b) {
+    if (a > 96) a-=32;
+    if (b > 96) b-=32;
+    if (b == a) return 2;
+    return a>b;
+}
 
-        //prints part of the rainbow
-        r.print(s);
+int strcomp(std::string a, std::string b) {
+    int len = a.length();
+    if (b.length()<len) len=b.length();
+    char c[len] = "";
+    strncat(c, a.c_str(),len);
+    char d[len] = "";
+    strncat(d,b.c_str(),len);
+    int cmp;
+    for (int i = 0; i < len; i++) {
+        cmp = charcmp(c[i], d[i]);
+        if (cmp != 2) return cmp;
+    }
+    return b.length()<a.length();
+}
 
-        printf("\t"); // tab
-
-        // print string with a sub-rainbow of length 30
-        r.print2d(s);
-
-        printf("\n"); // newline
-
-        // moves to the next colour
-        r.next();
-
+void sortdir(std::vector<diritem> list, std::vector<std::string>& newlist){
+    std::string comp;
+    for (;list.size()!=0;) {
+        int ii=0;
+        comp = list[0].name;
+        for (int i = 1; i < list.size(); i++) {
+            if (strcomp(comp, list[i].name)) {
+                ii = i;
+                comp = list[i].name;
+            }
+        }
+        newlist.push_back(list[ii].str());
+        list.erase(list.begin()+ii);
     }
 }
-*/
+
+int main(int argc, char* argv[]) {
+    rainbow r;
+    r.init(30);
+
+    std::string path = getpath(argc, argv);
+
+    r.print2d(path+"\n\n");
+    r.next();
+
+    if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
+        r.print2d(" Directory not found.\n\n");
+        return 1;
+    }
+
+    std::vector<diritem> files;
+    std::vector<diritem> folders;
+    int len = getdir(files, folders, path);
+    std::vector<std::string> dirlist;
+    std::vector<std::string> dirlist1;
+    sortdir(folders, dirlist1);
+    sortdir(folders, dirlist);
+    dirlist1.clear();
+    sortdir(files,dirlist1);
+    sortdir(files,dirlist);
+
+    if (dirlist.size()<30) r.init(dirlist.size());
+
+    for (int i = 0; i < dirlist.size(); i++) {
+        r.print2d(dirlist[i], len);
+        r.next();
+    }
+    r.print2d("\nFolders / Files / Total: " + std::to_string(folders.size()) + '/' + std::to_string(files.size()) + '/' + std::to_string(folders.size()+files.size()) + '\n');
+
+    return 0;
+}
