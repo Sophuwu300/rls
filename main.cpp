@@ -126,7 +126,7 @@ int getdir(std::vector<diritem>& files, std::vector<diritem>& folders, std::stri
         files.push_back(item);
     }
     len /= i;
-    return len*10;
+    return (10+len)*10;
 }
 
 int charcmp(char a, char b) {
@@ -173,11 +173,11 @@ int main(int argc, char* argv[]) {
 
     std::string path = getpath(argc, argv);
 
-    r.print2d(path+"\n\n", path.length());
-    r.next();
-
     if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
-        r.print2d(" Directory not found.\n\n");
+        r.print2d(path+"\n");
+        r.next();
+        r.next();
+        r.print2d(" Directory not found.\n");
         return 1;
     }
 
@@ -190,7 +190,11 @@ int main(int argc, char* argv[]) {
 
     if (dirlist.size()<30) r.init(dirlist.size());
 
+    r.print2d(path+"\n", path.length());
+    r.next();
+
     for (int i = 0; i < dirlist.size(); i++) {
+        printf("   ");
         r.print2d(dirlist[i], len);
         r.next();
     }
