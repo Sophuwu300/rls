@@ -1,3 +1,4 @@
+SHELL=/bin/bash
 ifeq ($(shell command -v cmake), )
 COMPCMD = $(CC) --std=c++17 -o build/rls main.cpp
 COMPMSG = $(CC)
