@@ -1,9 +1,24 @@
 <html>
   <body>
-  <h1>rainbow-ls-cpp</h1>
+  <h1>RLS v2</h1>
+  <h3>Rainbow-LS-CPP</h3>
 
   <h2>About</h2>
-  <h4>The Linux ls command but it's shown as a rainbow with file sizes with indents to make it easier to read! Made in C++, It is very fast and does everything you need it to do! You can choose the directory to view, absolute or relative path! It also lists folders at the top and alphabetically sorts them.</h4> 
+  <p>Have you ever been bored of the boring old ls command always showing you the same dull colors?</p>
+  <p>Well I have a solution for you! RLS!</p>
+  <p>With RLS you can see your directories in style. Rainbow style.</p>
+<br>
+  <p>This is the second version of the rls command. Now with faster code, smaller binary, and more colors. </p>
+  <h3>Features:</h3>
+  <p>    - Lists directories.</p>
+  <p>    - As a rainbow.</p>
+  <h3>Improvements:</h3>
+  <p>    - Outputs rainbow in both x and y directions. </p>
+  <p>    - Rainbow is more visible due to dynamic length. </p>
+  <p>    - Is faster than the old Golang and C++v1 rls.</p>
+  <p>    - Uses no external libraries. I made the whole thing as small as possible. </p>
+  <p>    - When compiled dynamically it is only 20kb.</p>
+  <br>
 
 <h2>Feel The Rainbow</h2>
 <p align=center>
