@@ -126,7 +126,7 @@ int getdir(std::vector<diritem>& files, std::vector<diritem>& folders, std::stri
         files.push_back(item);
     }
     len /= i;
-    return len*7.5;
+    return len*10;
 }
 
 int charcmp(char a, char b) {
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
 
     std::string path = getpath(argc, argv);
 
-    r.print2d(path+"\n\n");
+    r.print2d(path+"\n\n", path.length());
     r.next();
 
     if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
@@ -185,11 +185,7 @@ int main(int argc, char* argv[]) {
     std::vector<diritem> folders;
     int len = getdir(files, folders, path);
     std::vector<std::string> dirlist;
-    std::vector<std::string> dirlist1;
-    sortdir(folders, dirlist1);
     sortdir(folders, dirlist);
-    dirlist1.clear();
-    sortdir(files,dirlist1);
     sortdir(files,dirlist);
 
     if (dirlist.size()<30) r.init(dirlist.size());
@@ -198,7 +194,7 @@ int main(int argc, char* argv[]) {
         r.print2d(dirlist[i], len);
         r.next();
     }
-    r.print2d("\nFolders / Files / Total: " + std::to_string(folders.size()) + '/' + std::to_string(files.size()) + '/' + std::to_string(folders.size()+files.size()) + '\n');
+    r.print2d("\nFolders / Files / Total: " + std::to_string(folders.size()) + '/' + std::to_string(files.size()) + '/' + std::to_string(folders.size()+files.size()) + '\n', len);
 
     return 0;
 }
