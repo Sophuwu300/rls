@@ -44,8 +44,8 @@ small: build/rls
 	@echo Stripping binary.
 	@$(STRIPCMD)
 	@$(UPXCMD)
-	@echo Old Sise: $(shell du -sh build/rls.bak)
-	@echo New size: $(shell du -sh build/rls)
+	@echo Old Sise: && du -sh build/rls.bak
+	@echo New size: && du -sh build/rls
 
 
 install: build/rls
