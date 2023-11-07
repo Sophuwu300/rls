@@ -96,6 +96,7 @@ struct diritem {
 };
 
 std::string convsize(unsigned long n) {
+    if (n == 0) return "  0.00    ";
     double f = n;
     char c[] = " KMGT";
     unsigned long i = 0;
@@ -115,14 +116,19 @@ int getdir(std::vector<diritem>& files, std::vector<diritem>& folders, std::stri
         item.name = entry.path().filename().string();
         len += item.name.length();
         i++;
-        if (std::filesystem::is_directory(entry.path())) {
-            item.name += "/";
-            item.size = "Folder    ";
-            folders.push_back(item);
-            continue;
-        } else if (std::filesystem::exists(entry.path()))
-            item.size = convsize(std::filesystem::file_size(entry.path()));
-        else item.size = convsize(0);
+        try {
+            if (std::filesystem::is_directory(entry.path())) {
+                item.name += "/";
+                item.size = "Folder    ";
+                folders.push_back(item);
+                continue;
+            }
+            if (std::filesystem::exists(entry.path()) && std::filesystem::is_regular_file(entry.path()))
+                item.size = convsize(std::filesystem::file_size(entry.path()));
+            else item.size = convsize(0);
+        } catch (std::exception& e) {
+            item.size = "  0.00    ";
+        }
         files.push_back(item);
     }
     len /= i;
