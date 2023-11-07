@@ -1,6 +1,6 @@
 ifeq ($(shell command -v cmake), )
-COMPCMD = $(CC) --std=c++17 -o build/rls main.cpp
-COMPMSG = $(CC)
+COMPCMD = g++ --std=c++17 -o build/rls main.cpp
+COMPMSG = g++
 else
 ifeq ($(shell command -v ninja), )
 COMPCMD = cmake -S . -B build && cmake --build build
@@ -20,7 +20,7 @@ endif
 ifeq ($(shell command -v upx), )
 UPXCMD = echo UPX not found. Binary size may be larger than expected.
 else
-UPXCMD = upx --best build/rls
+UPXCMD = upx --best build/rls > /dev/null
 endif
 
 build: main.cpp $(CMAKELISTS)
@@ -30,11 +30,11 @@ build: main.cpp $(CMAKELISTS)
 	@$(COMPCMD)
 	@echo Compiled successfully.
 	@echo Program is located at build/rls.
-	@echo \"make small\" to reduce binary size. Requires strip and/or upx.
-	@echo \"sudo make install\" to install the program into /usr/local/bin.
-	@echo And \"make clean\" to remove the build directory.
+	@echo "make small" to reduce binary size. Requires strip and/or upx.
+	@echo "sudo make install" to install the program into /usr/local/bin.
+	@echo And "make clean" to remove the build directory.
 
-clean: build
+clean: build/
 	@echo Cleaning up.
 	@rm -rf build
 	@echo Cleaned up successfully.
@@ -44,7 +44,7 @@ small: build/rls
 	@echo Stripping binary.
 	@$(STRIPCMD)
 	@$(UPXCMD)
-	@echo Old Sise: && du -sh build/rls.bak
+	@echo Old Size: && du -sh build/rls.bak
 	@echo New size: && du -sh build/rls
 
 
@@ -52,4 +52,4 @@ install: build/rls
 	@echo Installing to /usr/local/bin.
 	@sudo cp build/rls /usr/local/bin/rls
 	@echo Installed successfully.
-	@echo Run \"rls\" to use the program.
+	@echo Run "rls" to use the program.
