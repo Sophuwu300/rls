@@ -53,7 +53,7 @@ struct rainbow {
     rgb c;
     double s = 0; // step
 
-    void init(int len) {
+    void init(unsigned int len) {
         if (len == 0) panic("Divison by zero.");
         c.set(255, 0, 0);
         s = 5.0*255.0 / (double)len;
@@ -95,10 +95,11 @@ struct diritem {
     std::string str() {return size + name + "\n";}
 };
 
-std::string convsize(int n) {
-    float f = n;
+std::string convsize(unsigned long n) {
+    if (n == 0) return "  0.00    ";
+    double f = n;
     char c[] = " KMGT";
-    int i = 0;
+    unsigned long i = 0;
     for (;f > 999; i++) f /= 1000;
     if (i > 4) return " >1.00 P  ";
     n = 100*f;
@@ -115,14 +116,19 @@ int getdir(std::vector<diritem>& files, std::vector<diritem>& folders, std::stri
         item.name = entry.path().filename().string();
         len += item.name.length();
         i++;
-        if (std::filesystem::is_directory(entry.path())) {
-            item.name += "/";
-            item.size = "Folder    ";
-            folders.push_back(item);
-            continue;
-        } else if (std::filesystem::exists(entry.path()))
-            item.size = convsize(std::filesystem::file_size(entry.path()));
-        else item.size = convsize(0);
+        try {
+            if (std::filesystem::is_directory(entry.path())) {
+                item.name += "/";
+                item.size = "Folder    ";
+                folders.push_back(item);
+                continue;
+            }
+            if (std::filesystem::exists(entry.path()) && std::filesystem::is_regular_file(entry.path()))
+                item.size = convsize(std::filesystem::file_size(entry.path()));
+            else item.size = convsize(0);
+        } catch (std::exception& e) {
+            item.size = "  0.00    ";
+        }
         files.push_back(item);
     }
     len /= i;
@@ -200,6 +206,6 @@ int main(int argc, char* argv[]) {
         r.next();
     }
     r.print2d("Folders / Files / Total: " + std::to_string(folders.size()) + '/' + std::to_string(files.size()) + '/' + std::to_string(folders.size()+files.size()) + '\n', len);
-
+    printf("\033[0m");
     return 0;
 }
