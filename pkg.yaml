@@ -1,0 +1,5 @@
+name: rls
+description: list directories in rainbows with file size
+maintainer: Sophie Kisiel
+homepage: https://sophuwu.site/rls/
+directory: /usr/local/bin
