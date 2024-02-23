@@ -8,45 +8,87 @@
 
 typedef unsigned char byte;
 
-byte COLOR = 1;
+struct PATH {
+    std::filesystem::path path;
+    byte verify();
+    std::filesystem::path current(byte abs = 0) {
+        if (paths[i].is_absolute()) return paths[i];
+        if (abs) return std::filesystem::absolute(paths[i]);
+        return std::filesystem::relative(paths[i]);
+    }
+};
 
-void prnt(rainbow&r, std::string str) {
-    if (COLOR) {r.print2d(str);r.next();}
+struct PATHS {
+    size_t i = 0;;
+    std::vector<PATH> paths;
+    void add(std::string path) {paths.push_back(PATH{path});}
+    PATH operator ()() {return paths[i];}
+    void next() {i++;}
+    byte end() {return i >= paths.size();}
+};
+
+byte PATHS::verify() {
+    if (!std::filesystem::exists(path)) {
+        prnt(path+" not found.\n");
+        return 0;
+    }
+    if (!std::filesystem::is_directory(path)) {
+        prnt(path+" is not a directory.\n");
+        return 0;
+    }
+    return 1;
+}
+
+struct FLAGS {
+    byte color = 1;
+    byte list = 0;
+    byte all = 0;
+    byte number = 0;
+    byte help = 0;
+    PATHS path;
+    void parse(int argc, char* argv[]);
+    void toggle(std::string arg);
+} flags;
+
+void FLAGS::toggle(std::string arg) {
+    if (arg == "nocolor" || arg == "c") color = 0;
+    else if (arg == "list" || arg == "l") list = 1;
+    else if (arg == "all" || arg == "a") all = 1;
+    else if (arg == "help" || arg == "h") help = 1;
+    else if (arg == "number" || arg == "n") number = 1;
+    else printf("Unknown flag: %s\n", arg.c_str());
+}
+
+void FLAGS::parse(int argc, char* argv[]) {
+    std::string arg;
+    size_t len;
+    int j;
+    for (int i = 1; i < argc; i++) {
+        arg = std::string(argv[i]);
+        len = arg.length();
+        if (len >= 2 && arg.substr(0,2) == "--") toggle(arg.substr(2));
+        else if (len >= 1 && arg[0] == '-') for (j = 1; j < len; j++) toggle(arg.substr(j,1));
+        else path.add(arg);
+    }
+}
+
+rainbow r;
+
+void prnt(std::string str) {
+    if (flags.color) {r.print2d(str);r.next();}
     else printf("%s", str.c_str());
 }
 
-void help(std::string name) {
-    rainbow r;
-    r.init(30);
-    prnt(r, "Usage: "+name+" [OPTIONS] <PATH>\n");
-    prnt(r, "List content of PATH in rainbow.\n\n");
-    prnt(r, "Options:\n");
-    prnt(r, "   -h, --help\t\tDisplay this help message.\n");
-    prnt(r, "   -i, --info\t\tDisplay the number of items and absolute path.\n");
-    prnt(r, "   -f, --format=string\tFormat the output. Default: \"%s %n\"\n");
-
-    prnt(r, "Format string:\n");
-    prnt(r, "   %n   name\n");
-    prnt(r, "   %N   full name\n");
-    prnt(r, "   %s   size\n");
-    prnt(r, "   %S   size in bytes\n");
-    prnt(r, "   %P   permission bits\n");
-    prnt(r, "   %p   permission string\n");
-    prnt(r, "   %o   owner name\n");
-    prnt(r, "   %O   owner number\n");
-    prnt(r, "   %g   group name\n");
-    prnt(r, "   %G   group number\n");
-    prnt(r, "   %t   mod time\n");
-    prnt(r, "   %T   unix mod time\n");
-}
-
-std::string getpath(int argc, char* argv[]) {
-    std::string path = std::filesystem::current_path();
-    if (argc > 1) {
-        if (argv[1][0] == '/') path = std::string(argv[1]);
-        else path += "/" + std::string(argv[1]);
-    }
-    return path;
+void runHelp(std::string name) {
+    prnt("Usage: "+name+" [OPTIONS] <PATH>\n");
+    prnt("List content of PATH in rainbow.\n");
+    prnt("Options:\n");
+    prnt("   -h, --help\t\tdisplay this help message\n");
+    prnt("   -c, --nocolor\t\tdisable color output\n");
+    prnt("   -l, --list\tmore info.\n");
+    prnt("   -a, --all\tlist all files\n");
+    prnt("   -n, --number\tcount files\n");
+    exit(0);
 }
 
 struct diritem {
@@ -136,13 +178,14 @@ void sortdir(std::vector<diritem> list, std::vector<std::string>& newlist){
 }
 
 int main(int argc, char* argv[]) {
-    help(std::string(argv[0]));
-    return 0;
-    rainbow r;
     r.init(30);
+    flags.parse(argc, argv);
+    if (flags.help) runHelp(argv[0]);
+    for (;!flags.path.end();flags.path.next()) {
 
-    std::string path = getpath(argc, argv);
-
+    }
+    return 0;
+/*
     if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
         r.print2d(path+"\n");
         r.next();
@@ -170,4 +213,5 @@ int main(int argc, char* argv[]) {
     r.print2d("Folders / Files / Total: " + std::to_string(folders.size()) + '/' + std::to_string(files.size()) + '/' + std::to_string(folders.size()+files.size()) + '\n', len);
     printf("\033[0m");
     return 0;
+*/
 }
