@@ -4,81 +4,41 @@
 #include <filesystem>
 #include <sys/stat.h>
 #include <vector>
+#include "rainbow.h"
 
-void panic(std::string s) {
-    fprintf(stderr, "Fatal error: %s\n", s.c_str());
-    exit(1);
+typedef unsigned char byte;
+
+byte COLOR = 1;
+
+void prnt(rainbow&r, std::string str) {
+    if (COLOR) {r.print2d(str);r.next();}
+    else printf("%s", str.c_str());
 }
 
-struct rgb {
-    double r, g, b;
+void help(std::string name) {
+    rainbow r;
+    r.init(30);
+    prnt(r, "Usage: "+name+" [OPTIONS] <PATH>\n");
+    prnt(r, "List content of PATH in rainbow.\n\n");
+    prnt(r, "Options:\n");
+    prnt(r, "   -h, --help\t\tDisplay this help message.\n");
+    prnt(r, "   -i, --info\t\tDisplay the number of items and absolute path.\n");
+    prnt(r, "   -f, --format=string\tFormat the output. Default: \"%s %n\"\n");
 
-    void clamp() {
-        if (r > 255) r = 255; else if (r < 0) r = 0;
-        if (g > 255) g = 255; else if (g < 0) g = 0;
-        if (b > 255) b = 255; else if (b < 0) b = 0;
-    }
-
-    std::string str(char sep = ';') {
-        clamp();
-        return std::to_string((int)r) + sep + std::to_string((int)g) + sep + std::to_string((int)b);
-    }
-
-    void set(double rr, double gg, double bb) {r = rr;g = gg;b = bb; clamp();}
-    void set(rgb c) {r = c.r;g = c.g;b = c.b; clamp();}
-
-    void print(std::string s) {printf("\033[38;2;%sm%s\033[0m", str().c_str(), s.c_str());}
-    void printAt(std::string s, int x, int y) {printf("\033[%d;%dH\033[38;2;%sm%s\033[0m", y, x, str().c_str(), s.c_str());}
-    void setPx(int x, int y) {printf("\033[%d;%dH\033[48;2;%sm \033[0m", y, x, str().c_str());}
-
-    double operator[](int i) {
-        switch (i%3) {
-            case 0: return r;
-            case 1: return g;
-            case 2: return b;
-        }
-        return 0;
-    }
-    void indexAdd(int i, double v) {
-        switch (i%3) {
-            case 0: r += v; break;
-            case 1: g += v; break;
-            case 2: b += v; break;
-        }
-        clamp();
-    }
-};
-
-struct rainbow {
-    rgb c;
-    double s = 0; // step
-
-    void init(unsigned int len) {
-        if (len == 0) panic("Divison by zero.");
-        c.set(255, 0, 0);
-        s = 5.0*255.0 / (double)len;
-    }
-
-    void next() {
-        if (s == 0) panic("Empty infinity loop. Rainbow not initialized.");
-        for (int i = 0; i < 3; i++) {
-            if ((c[i+1]==0||c[i+1]==255)&&(c[i+2]==0||c[i+2]==255)) {
-                if (c[i+1]==0&&c[i+2]==255) c.indexAdd(i, s);
-                else if (c[i+1]==255&&c[i+2]==0) c.indexAdd(i, -s);
-            }
-        }
-    }
-    void print(std::string s) {c.print(s);}
-    void print2d(std::string s, int len = 30) {
-        rainbow r;
-        r.init(len);
-        r.c.set(c);
-        for (int i = 0; i < s.length(); i++) {
-            r.print(s.substr(i, 1));
-            r.next();
-        }
-    }
-};
+    prnt(r, "Format string:\n");
+    prnt(r, "   %n   name\n");
+    prnt(r, "   %N   full name\n");
+    prnt(r, "   %s   size\n");
+    prnt(r, "   %S   size in bytes\n");
+    prnt(r, "   %P   permission bits\n");
+    prnt(r, "   %p   permission string\n");
+    prnt(r, "   %o   owner name\n");
+    prnt(r, "   %O   owner number\n");
+    prnt(r, "   %g   group name\n");
+    prnt(r, "   %G   group number\n");
+    prnt(r, "   %t   mod time\n");
+    prnt(r, "   %T   unix mod time\n");
+}
 
 std::string getpath(int argc, char* argv[]) {
     std::string path = std::filesystem::current_path();
@@ -176,6 +136,8 @@ void sortdir(std::vector<diritem> list, std::vector<std::string>& newlist){
 }
 
 int main(int argc, char* argv[]) {
+    help(std::string(argv[0]));
+    return 0;
     rainbow r;
     r.init(30);
 

@@ -25,7 +25,6 @@ endif
 
 build: main.cpp $(CMAKELISTS)
 	@echo Building with $(COMPMSG).
-	@sleep 2
 	@mkdir -p build
 	@$(COMPCMD)
 	@echo Compiled successfully.
@@ -53,3 +52,6 @@ install: build/rls
 	@sudo cp build/rls /usr/local/bin/rls
 	@echo Installed successfully.
 	@echo Run "rls" to use the program.
+
+run: build/rls
+	build/rls
