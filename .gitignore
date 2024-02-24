@@ -2,4 +2,4 @@ build
 cmake-build-debug
 .idea
 rls
-
+dist
