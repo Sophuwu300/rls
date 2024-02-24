@@ -1,5 +1,5 @@
 ifeq ($(shell command -v cmake), )
-COMPCMD = g++ --std=c++17 -o build/rls main.cpp
+COMPCMD = g++ --std=c++17 -o build/rls rls.cpp
 COMPMSG = g++
 else
 ifeq ($(shell command -v ninja), )
@@ -23,7 +23,7 @@ else
 UPXCMD = upx --best build/rls > /dev/null
 endif
 
-build: main.cpp $(CMAKELISTS)
+build: rls.cpp $(CMAKELISTS)
 	@echo Building with $(COMPMSG).
 	@mkdir -p build
 	@$(COMPCMD)
