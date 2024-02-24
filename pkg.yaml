@@ -1,5 +1,5 @@
 name: rls
 description: list directories in rainbows with file size
 maintainer: Sophie Kisiel
-homepage: https://sophuwu.site/rls/
+homepage: https://github.com/Sophuwu300/rainbow-ls-cpp/
 directory: /usr/local/bin

@@ -53,5 +53,8 @@ install: build/rls
 	@echo Installed successfully.
 	@echo Run "rls" to use the program.
 
-run: build/rls
-	build/rls
+arm: rls.cpp CMakeLists.txt arm64_toolchain.cmake
+	@echo building arm
+	@mkdir -p build/arm
+	@cmake -DCMAKE_TOOLCHAIN_FILE=arm64_toolchain.cmake -B build/arm
+	@cmake --build build/arm
