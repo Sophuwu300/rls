@@ -47,11 +47,12 @@ struct printer {
     void operator()();
 }prnt;
 struct ST {
-    ST(DIRENT e);
-    std::string init(DIRENT e);
+    ST(const DIRENT &e);
+    std::string init(const DIRENT& e);
     struct stat st;
     std::string perms();
     std::string owner();
     std::string size();
+    std::string time();
     std::string str();
 };

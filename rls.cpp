@@ -6,6 +6,7 @@
 #include <vector>
 #include <unistd.h>
 #include <pwd.h>
+#include <grp.h>
 #include <cmath>
 #include "rainbow.h"
 #include "rls.h"
@@ -127,8 +128,6 @@ void printer::operator()(std::string str) {
 
 /////// ENTLIST DEFINITIONS ///////
 void ENTLIST::print() {
-    std::string outstr = "";
-    struct stat st;
     for (DIRENT e : list) {
         ST{e};
     }
@@ -149,14 +148,23 @@ std::string ST::perms() {
     permissions += (st.st_mode & S_IXOTH) ? 'x' : '-';
     return permissions;
 }
+std::string pad(std::string s, int len) {
+    for(; s.length() < len; s=" "+s);
+    return s;
+}
 std::string ST::owner() {
     struct passwd *pw = getpwuid(st.st_uid);
     if (pw == nullptr) {
         return "Unknown";
     }
-    return std::string(pw->pw_name);
+        struct group *grp = getgrgid(st.st_gid);
+    if (grp == nullptr) {
+        return "Unknown";
+    }
+    return pad(std::string(pw->pw_name), 8) + " " + pad(std::string(grp->gr_name), 8);
 }
 std::string ST::size() {
+    if (st.st_mode & S_IFDIR) return "folder  ";
     const char* suffix = "BKMGT";
     D s = D(st.st_size);
     uint size = uint(log(s)/log(1024));
@@ -164,18 +172,24 @@ std::string ST::size() {
     char d[50];
     sprintf(b, "%.2lf", D(D(s) / D(pow(uint(1024), size))));
     sprintf(d, "%6s %c", std::string(b).c_str(), suffix[size]);
-    return std::string(b);
+    return std::string(d);
 }
-std::string ST::init(DIRENT e) {
+std::string ST::time() {
+    char time[50];
+    strftime(time, 50, "%b %d %H:%M", localtime(&st.st_mtime));
+    return std::string(time);
+}
+std::string ST::init(const DIRENT& e) {
     std::string outstr = "";
     if (stat(e.path().c_str(), &st) != 0) return "err"; //error reading file
-    if (flags.list) {
-        outstr += perms() + " " + owner();
-    }
-    outstr += size() + " " + e.path().filename().string();
+    if (flags.list) outstr += perms() + "  " + owner() + "  ";
+    outstr += size() + "  ";
+    if (flags.list) outstr += time() + "  ";
+    outstr += e.path().filename().string();
+    if (e.is_directory()) outstr += "/";
     return outstr;
 }
-ST::ST(DIRENT e) {
+ST::ST(const DIRENT &e) {
     prnt(init(e));
 }
 
@@ -192,20 +206,6 @@ void runHelp(std::string name) {
     exit(0);
 }
 
-std::string convsize(unsigned long n) {
-    if (n == 0) return "  0.00    ";
-    double f = n;
-    char c[] = " KMGT";
-    unsigned long i = 0;
-    for (; f > 999; i++) f /= 1000;
-    if (i > 4) return " >1.00 P  ";
-    n = 100 * f;
-    std::string s = "";
-    for (; n > 0; n /= 10) s = std::to_string(n % 10) + s;
-    for (; s.length() < 5; s = " " + s);
-    return s.substr(0, 3) + "." + s.substr(3, 2) + " " + c[i] + "  ";
-}
-
 int main(int argc, char* argv[]) {
     flags.parse(argc, argv);
     if (flags.help) runHelp(argv[0]);
@@ -213,7 +213,6 @@ int main(int argc, char* argv[]) {
         prnt(paths.str());
         ENTLIST list = ENTLIST{paths.read().all()};
         list.print();
-        prnt();
     }
     return 0;
 }
