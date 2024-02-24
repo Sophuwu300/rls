@@ -130,6 +130,7 @@ void printer::operator()(std::string str) {
 /////// ENTLIST DEFINITIONS ///////
 void ENTLIST::print() {
     for (DIRENT e : list) {
+        if (!flags.all && e.path().filename().string()[0] == '.')continue;
         ST{e};
     }
     if (flags.number) prnt("files: " + std::to_string(files) + " dirs: " + std::to_string(dirs) + " total: " + std::to_string(files+dirs));
@@ -197,14 +198,14 @@ ST::ST(const DIRENT &e) {
 
 /////// MAIN ///////
 void runHelp(std::string name) {
-    prnt("Usage: "+name+" [OPTIONS] <PATH>");
+    prnt("Usage: "+name+" [OPTIONS] [PATHS]");
     prnt("List content of PATH in rainbow.");
     prnt("Options:");
-    prnt("   -h, --help\t\tdisplay this help message");
-    prnt("   -c, --nocolor\t\tdisable color output");
-    prnt("   -l, --list\tmore info.");
-    prnt("   -a, --all\tlist all files");
-    prnt("   -n, --number\tcount files");
+    prnt("   -h, --help     display this help message");
+    prnt("   -c, --nocolor  disable color output");
+    prnt("   -l, --list     more info on files");
+    prnt("   -a, --all      list dot files");
+    prnt("   -n, --number   count files");
     exit(0);
 }
 
