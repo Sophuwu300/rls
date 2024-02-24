@@ -14,13 +14,15 @@
 /////// DIRLIST DEFINITIONS ///////
 ENTLIST DIRLIST::all() {
     DIRENTS all;
+    UL f = files.size();
+    UL d = dirs.size();
     sorter(dirs, all);
     sorter(files, all);
     int len = all.size();
     if (len < 10) len = 10;
     else if (len > 50) len = 50;
     prnt.r.init(len);
-    return ENTLIST{all};
+    return ENTLIST{all, f, d};
 }
 
 int DIRLIST::charcomp(char a, char b) {
@@ -117,10 +119,9 @@ void FLAGS::parse(int argc, char* argv[]) {
 }
 /////// printer DEFINITIONS ///////
 void printer::operator()() {printf("\n");}
-
 void printer::operator()(std::string str) {
     if (flags.color) {
-        r.print2d(str + "\n");
+        r.print2d(str + "\n", (300+rand()%200)/10);
         r.next();
     }
     else printf("%s\n", str.c_str());
@@ -131,6 +132,7 @@ void ENTLIST::print() {
     for (DIRENT e : list) {
         ST{e};
     }
+    if (flags.number) prnt("files: " + std::to_string(files) + " dirs: " + std::to_string(dirs) + " total: " + std::to_string(files+dirs));
 }
 
 /////// ST DEFINITIONS ///////
@@ -187,7 +189,7 @@ std::string ST::init(const DIRENT& e) {
     if (flags.list) outstr += time() + "  ";
     outstr += e.path().filename().string();
     if (e.is_directory()) outstr += "/";
-    return outstr;
+    return "  " + outstr;
 }
 ST::ST(const DIRENT &e) {
     prnt(init(e));

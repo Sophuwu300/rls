@@ -6,6 +6,8 @@ typedef unsigned long long int UL;
 typedef double D;
 struct ENTLIST{
     DIRENTS list;
+    UL files;
+    UL dirs;
     void print();
 };
 struct DIRLIST {
